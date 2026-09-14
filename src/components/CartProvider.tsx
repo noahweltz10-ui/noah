@@ -9,8 +9,10 @@ import {
   useState,
 } from "react";
 import type { Cart } from "@/lib/types";
+import { FALLBACK_PRODUCTS } from "@/lib/shopify-fallback";
 
 const STORAGE_KEY = "shiftculture_cart_id";
+const DEMO_STORAGE_KEY = "shiftculture_demo_cart";
 
 type CartContextValue = {
   cart: Cart | null;
@@ -26,6 +28,53 @@ type CartContextValue = {
 
 const CartContext = createContext<CartContextValue | null>(null);
 
+type DemoLine = { id: string; variantId: string; quantity: number };
+
+function findVariant(variantId: string) {
+  for (const product of FALLBACK_PRODUCTS) {
+    const variant = product.variants.find((v) => v.id === variantId);
+    if (variant) return { product, variant };
+  }
+  return null;
+}
+
+function buildDemoCart(lines: DemoLine[]): Cart {
+  const cartLines = lines.flatMap((line) => {
+    const found = findVariant(line.variantId);
+    if (!found) return [];
+    return [
+      {
+        id: line.id,
+        quantity: line.quantity,
+        merchandise: {
+          id: found.variant.id,
+          title: found.product.title,
+          product: { title: found.product.title, handle: found.product.handle },
+          image: found.product.images[0] ?? null,
+          price: found.variant.price,
+        },
+      },
+    ];
+  });
+
+  const totalQuantity = cartLines.reduce((sum, l) => sum + l.quantity, 0);
+  const subtotal = cartLines.reduce(
+    (sum, l) => sum + Number(l.merchandise.price.amount) * l.quantity,
+    0
+  );
+
+  return {
+    id: "demo-cart",
+    checkoutUrl: "",
+    totalQuantity,
+    cost: {
+      subtotalAmount: { amount: subtotal.toFixed(2), currencyCode: "USD" },
+      totalAmount: { amount: subtotal.toFixed(2), currencyCode: "USD" },
+    },
+    lines: cartLines,
+  };
+}
+
 export function CartProvider({
   children,
   isConfigured,
@@ -34,9 +83,11 @@ export function CartProvider({
   isConfigured: boolean;
 }) {
   const [cart, setCart] = useState<Cart | null>(null);
+  const [demoLines, setDemoLines] = useState<DemoLine[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Real Shopify mode: restore a persisted cart id.
   useEffect(() => {
     if (!isConfigured) return;
     const id = window.localStorage.getItem(STORAGE_KEY);
@@ -50,6 +101,28 @@ export function CartProvider({
       .catch(() => {});
   }, [isConfigured]);
 
+  // Demo mode: restore locally-stored lines (no Shopify credentials needed).
+  // Intentionally deferred to an effect (not a lazy useState initializer) so
+  // the first client render matches the server-rendered empty cart — only
+  // then does it sync in whatever localStorage has, post-hydration.
+  useEffect(() => {
+    if (isConfigured) return;
+    try {
+      const raw = window.localStorage.getItem(DEMO_STORAGE_KEY);
+      if (raw) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- restoring browser-only state after hydration, deliberately not on first render
+        setDemoLines(JSON.parse(raw));
+      }
+    } catch {
+      // ignore malformed local state
+    }
+  }, [isConfigured]);
+
+  useEffect(() => {
+    if (isConfigured) return;
+    window.localStorage.setItem(DEMO_STORAGE_KEY, JSON.stringify(demoLines));
+  }, [demoLines, isConfigured]);
+
   const persist = useCallback((next: Cart | null) => {
     setCart(next);
     if (next) window.localStorage.setItem(STORAGE_KEY, next.id);
@@ -57,7 +130,25 @@ export function CartProvider({
 
   const addLine = useCallback(
     async (merchandiseId: string, quantity = 1) => {
-      if (!isConfigured) return;
+      if (!isConfigured) {
+        setDemoLines((prev) => {
+          const existing = prev.find((l) => l.variantId === merchandiseId);
+          if (existing) {
+            return prev.map((l) =>
+              l.variantId === merchandiseId
+                ? { ...l, quantity: l.quantity + quantity }
+                : l
+            );
+          }
+          return [
+            ...prev,
+            { id: `demo-line-${merchandiseId}-${Date.now()}`, variantId: merchandiseId, quantity },
+          ];
+        });
+        setIsOpen(true);
+        return;
+      }
+
       setIsLoading(true);
       try {
         const res = await fetch("/api/cart", {
@@ -79,7 +170,16 @@ export function CartProvider({
 
   const updateLine = useCallback(
     async (lineId: string, quantity: number) => {
-      if (!isConfigured || !cart) return;
+      if (!isConfigured) {
+        setDemoLines((prev) =>
+          quantity <= 0
+            ? prev.filter((l) => l.id !== lineId)
+            : prev.map((l) => (l.id === lineId ? { ...l, quantity } : l))
+        );
+        return;
+      }
+
+      if (!cart) return;
       setIsLoading(true);
       try {
         const res = await fetch("/api/cart", {
@@ -98,7 +198,12 @@ export function CartProvider({
 
   const removeLine = useCallback(
     async (lineId: string) => {
-      if (!isConfigured || !cart) return;
+      if (!isConfigured) {
+        setDemoLines((prev) => prev.filter((l) => l.id !== lineId));
+        return;
+      }
+
+      if (!cart) return;
       setIsLoading(true);
       try {
         const res = await fetch("/api/cart", {
@@ -115,9 +220,11 @@ export function CartProvider({
     [cart, isConfigured, persist]
   );
 
+  const effectiveCart = isConfigured ? cart : buildDemoCart(demoLines);
+
   const value = useMemo(
     () => ({
-      cart,
+      cart: effectiveCart,
       isOpen,
       isLoading,
       isConfigured,
@@ -127,7 +234,7 @@ export function CartProvider({
       updateLine,
       removeLine,
     }),
-    [cart, isOpen, isLoading, isConfigured, addLine, updateLine, removeLine]
+    [effectiveCart, isOpen, isLoading, isConfigured, addLine, updateLine, removeLine]
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

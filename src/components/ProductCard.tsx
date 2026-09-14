@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import type { MouseEvent as ReactMouseEvent } from "react";
 import type { Product } from "@/lib/types";
 import { useCart } from "./CartProvider";
 
@@ -14,8 +15,9 @@ function formatPrice(amount: string, currencyCode: string) {
 }
 
 export default function ProductCard({ product }: { product: Product }) {
-  const { addLine, isConfigured, isLoading } = useCart();
+  const { addLine, isLoading } = useCart();
   const [justAdded, setJustAdded] = useState(false);
+  const frameRef = useRef<HTMLDivElement | null>(null);
 
   const price = product.priceRange.minVariantPrice;
   const compareAt = product.compareAtPriceRange?.minVariantPrice;
@@ -32,13 +34,32 @@ export default function ProductCard({ product }: { product: Product }) {
     window.setTimeout(() => setJustAdded(false), 1800);
   };
 
+  const handleTilt = (e: ReactMouseEvent<HTMLDivElement>) => {
+    const el = frameRef.current;
+    if (!el || window.matchMedia("(hover: none)").matches) return;
+    const rect = el.getBoundingClientRect();
+    const px = (e.clientX - rect.left) / rect.width - 0.5;
+    const py = (e.clientY - rect.top) / rect.height - 0.5;
+    el.style.transform = `perspective(900px) rotateY(${px * 6}deg) rotateX(${-py * 6}deg) scale3d(1.02, 1.02, 1.02)`;
+  };
+
+  const resetTilt = () => {
+    const el = frameRef.current;
+    if (!el) return;
+    el.style.transform = "perspective(900px) rotateY(0deg) rotateX(0deg) scale3d(1, 1, 1)";
+  };
+
   return (
     <div className="group flex w-[78vw] shrink-0 flex-col gap-4 sm:w-[340px]">
       <div
-        className="reveal-mask relative aspect-[4/5] w-full overflow-hidden bg-ink/5"
+        ref={frameRef}
+        onMouseMove={handleTilt}
+        onMouseLeave={resetTilt}
+        className="reveal-mask relative aspect-[4/5] w-full overflow-hidden bg-ink/5 transition-transform duration-300 ease-out"
         data-reveal
         data-cursor={soldOut ? undefined : "hover"}
         data-cursor-text={soldOut ? undefined : "view"}
+        style={{ transformStyle: "preserve-3d" }}
       >
         <div className="reveal-mask-inner absolute inset-0">
           {image ? (
@@ -85,17 +106,11 @@ export default function ProductCard({ product }: { product: Product }) {
         <button
           type="button"
           onClick={handleAdd}
-          disabled={soldOut || !isConfigured || isLoading || !defaultVariant}
+          disabled={soldOut || isLoading || !defaultVariant}
           data-cursor="link"
           className="shrink-0 whitespace-nowrap rounded-full border border-ink px-4 py-2 text-[0.68rem] uppercase tracking-[0.12em] transition-colors hover:bg-ink hover:text-paper disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-ink"
         >
-          {soldOut
-            ? "sold out"
-            : justAdded
-              ? "added"
-              : isConfigured
-                ? "add to cart"
-                : "coming soon"}
+          {soldOut ? "sold out" : justAdded ? "added" : "add to cart"}
         </button>
       </div>
     </div>

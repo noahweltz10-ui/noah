@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import RevealText from "./RevealText";
+import MagneticButton from "./MagneticButton";
 
 export default function ContactSection() {
   const [values, setValues] = useState({ name: "", email: "", phone: "", comment: "" });
@@ -39,6 +40,7 @@ export default function ContactSection() {
       <div className="mx-auto max-w-3xl px-4 sm:px-6">
         <RevealText
           as="h2"
+          splitBy="char"
           className="font-display text-[clamp(2.4rem,7vw,4rem)] italic leading-[0.95]"
         >
           contact
@@ -68,14 +70,15 @@ export default function ContactSection() {
             />
           </div>
 
-          <button
+          <MagneticButton
             type="submit"
             disabled={status === "loading"}
             data-cursor="link"
+            strength={0.4}
             className="mt-4 self-start rounded-full border border-paper px-8 py-3 text-sm uppercase tracking-[0.14em] transition-colors hover:bg-paper hover:text-ink disabled:opacity-50"
           >
             {status === "loading" ? "sending…" : "submit"}
-          </button>
+          </MagneticButton>
 
           {message && (
             <p className="text-xs text-paper/50" role="status">

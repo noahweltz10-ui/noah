@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import MagneticButton from "./MagneticButton";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -82,14 +83,16 @@ export default function Hero() {
           <p className="text-sm uppercase tracking-[0.2em] text-paper/70">
             drop 001 — now available
           </p>
-          <a
+          <MagneticButton
+            as="a"
             href="#drop"
+            strength={0.5}
             data-cursor="link"
             data-cursor-text="scroll"
-            className="text-sm underline decoration-paper/40 underline-offset-4 transition-colors hover:decoration-paper"
+            className="inline-block text-sm underline decoration-paper/40 underline-offset-4 transition-colors hover:decoration-paper"
           >
             view the drop
-          </a>
+          </MagneticButton>
         </div>
       </div>
 

@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import RevealText from "./RevealText";
+import MagneticButton from "./MagneticButton";
 
 export default function EmailCapture() {
   const [email, setEmail] = useState("");
@@ -61,14 +62,15 @@ export default function EmailCapture() {
             placeholder="email address"
             className="w-full flex-1 bg-transparent py-2 text-sm outline-none placeholder:text-ink/40"
           />
-          <button
+          <MagneticButton
             type="submit"
             disabled={status === "loading"}
             data-cursor="link"
+            strength={0.45}
             className="shrink-0 whitespace-nowrap text-sm uppercase tracking-[0.14em] underline decoration-ink/30 underline-offset-4 hover:decoration-ink disabled:opacity-50"
           >
             {status === "loading" ? "sending…" : "join"}
-          </button>
+          </MagneticButton>
         </form>
       </div>
 

@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import MagneticButton from "./MagneticButton";
 import { useCart } from "./CartProvider";
 
 function formatPrice(amount: string, currencyCode: string) {
@@ -11,7 +12,7 @@ function formatPrice(amount: string, currencyCode: string) {
 }
 
 export default function CartDrawer() {
-  const { cart, isOpen, closeCart, updateLine, removeLine, isLoading } = useCart();
+  const { cart, isOpen, closeCart, updateLine, removeLine, isLoading, isConfigured } = useCart();
 
   return (
     <>
@@ -109,13 +110,29 @@ export default function CartDrawer() {
                 {formatPrice(cart.cost.subtotalAmount.amount, cart.cost.subtotalAmount.currencyCode)}
               </span>
             </div>
-            <a
-              href={cart.checkoutUrl}
-              data-cursor="link"
-              className="block w-full rounded-full bg-ink py-3 text-center text-sm uppercase tracking-[0.14em] text-paper transition-opacity hover:opacity-85"
-            >
-              checkout
-            </a>
+            {isConfigured ? (
+              <MagneticButton
+                as="a"
+                href={cart.checkoutUrl}
+                data-cursor="link"
+                className="block w-full rounded-full bg-ink py-3 text-center text-sm uppercase tracking-[0.14em] text-paper transition-opacity hover:opacity-85"
+              >
+                checkout
+              </MagneticButton>
+            ) : (
+              <div>
+                <button
+                  type="button"
+                  disabled
+                  className="block w-full cursor-not-allowed rounded-full bg-ink/20 py-3 text-center text-sm uppercase tracking-[0.14em] text-ink/40"
+                >
+                  checkout
+                </button>
+                <p className="mt-2 text-center text-[0.68rem] text-ink/40">
+                  demo cart — connect shopify to enable real checkout
+                </p>
+              </div>
+            )}
           </div>
         )}
       </aside>

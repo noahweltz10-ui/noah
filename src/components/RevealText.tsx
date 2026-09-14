@@ -5,14 +5,15 @@ type Props = {
   as?: ElementType;
   className?: string;
   delay?: number;
-  splitBy?: "line" | "word";
+  splitBy?: "line" | "word" | "char";
 };
 
 /**
  * Wraps text so it can reveal upward from a clipped mask when scrolled into
- * view (powered by the page-wide GlobalReveal observer). `splitBy="word"`
- * staggers each word; `splitBy="line"` (default) reveals the whole block as
- * one line.
+ * view (powered by the page-wide GlobalReveal observer). `splitBy="char"`
+ * cascades letter by letter, `"word"` staggers each word, and `"line"`
+ * (default) reveals the whole block as one line — pick a different one per
+ * section so the motion doesn't feel identical everywhere.
  */
 export default function RevealText({
   children,
@@ -21,28 +22,48 @@ export default function RevealText({
   delay = 0,
   splitBy = "line",
 }: Props) {
-  const words = children.split(" ");
   const TagEl = Tag as unknown as "div";
 
-  return (
-    <TagEl className={className}>
-      {splitBy === "word" ? (
-        words.map((word, i) => (
+  if (splitBy === "line") {
+    return (
+      <TagEl className={className}>
+        <span className="reveal-line" data-reveal data-reveal-delay={delay}>
+          <span>{children}</span>
+        </span>
+      </TagEl>
+    );
+  }
+
+  if (splitBy === "char") {
+    return (
+      <TagEl className={className}>
+        {children.split("").map((char, i) => (
           <span
             key={i}
             className="reveal-line"
             data-reveal
-            data-reveal-delay={delay + i * 40}
-            style={{ marginRight: "0.28em" }}
+            data-reveal-delay={delay + i * 22}
           >
-            <span>{word}</span>
+            <span>{char === " " ? " " : char}</span>
           </span>
-        ))
-      ) : (
-        <span className="reveal-line" data-reveal data-reveal-delay={delay}>
-          <span>{children}</span>
+        ))}
+      </TagEl>
+    );
+  }
+
+  return (
+    <TagEl className={className}>
+      {children.split(" ").map((word, i) => (
+        <span
+          key={i}
+          className="reveal-line"
+          data-reveal
+          data-reveal-delay={delay + i * 40}
+          style={{ marginRight: "0.28em" }}
+        >
+          <span>{word}</span>
         </span>
-      )}
+      ))}
     </TagEl>
   );
 }
