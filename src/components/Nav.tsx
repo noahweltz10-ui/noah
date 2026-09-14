@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useCart } from "./CartProvider";
+import { LogoBadge } from "./LogoMark";
 
 const LINKS = [
   { href: "#drop", label: "shop" },
@@ -42,12 +43,17 @@ export default function Nav() {
         <Link
           href="#top"
           data-cursor="link"
-          className={[
-            "font-display italic tracking-tight transition-all duration-500",
-            scrolled ? "text-base" : "text-lg sm:text-xl",
-          ].join(" ")}
+          className="flex items-center gap-2.5"
         >
-          shift culture
+          <LogoBadge width={16} padding={7} />
+          <span
+            className={[
+              "font-display italic tracking-tight transition-all duration-500",
+              scrolled ? "text-base" : "text-lg sm:text-xl",
+            ].join(" ")}
+          >
+            shift culture
+          </span>
         </Link>
 
         <nav className="hidden items-center gap-8 text-[0.72rem] uppercase tracking-[0.16em] sm:flex">

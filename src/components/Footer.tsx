@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LogoMark } from "./LogoMark";
 
 export default function Footer() {
   const year = new Date().getFullYear();
@@ -7,7 +8,10 @@ export default function Footer() {
     <footer className="bg-paper px-4 py-10 sm:px-6">
       <div className="mx-auto flex max-w-6xl flex-col gap-8 border-t border-ink/10 pt-8 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="font-display text-xl italic">shift culture</p>
+          <div className="flex items-center gap-2.5">
+            <LogoMark width={18} />
+            <p className="font-display text-xl italic">shift culture</p>
+          </div>
           <p className="mt-2 text-xs text-ink/50">
             drop 001 — cream / midnight
           </p>

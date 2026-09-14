@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import Image from "next/image";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import MagneticButton from "./MagneticButton";
@@ -14,6 +15,8 @@ export default function Hero() {
   const wordmarkRef = useRef<HTMLDivElement | null>(null);
   const imageRef = useRef<HTMLDivElement | null>(null);
   const subRef = useRef<HTMLDivElement | null>(null);
+  const badgeRef = useRef<HTMLDivElement | null>(null);
+  const markRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const prefersReduced = window.matchMedia(
@@ -22,11 +25,17 @@ export default function Hero() {
 
     const ctx = gsap.context(() => {
       if (prefersReduced) {
-        gsap.set([wordmarkRef.current, subRef.current], { opacity: 1, y: 0 });
+        gsap.set([wordmarkRef.current, subRef.current, badgeRef.current], {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+        });
         return;
       }
 
       gsap.set(subRef.current, { opacity: 0, y: 16 });
+      gsap.set(badgeRef.current, { opacity: 0, scale: 0.7, rotate: -18 });
+
       gsap
         .timeline({ delay: 0.15 })
         .to(wordmarkRef.current, {
@@ -35,6 +44,11 @@ export default function Hero() {
           duration: 1.1,
           ease: "expo.out",
         })
+        .to(
+          badgeRef.current,
+          { opacity: 1, scale: 1, rotate: 0, duration: 1.2, ease: "expo.out" },
+          "-=0.9"
+        )
         .to(
           subRef.current,
           { opacity: 1, y: 0, duration: 0.8, ease: "expo.out" },
@@ -52,7 +66,16 @@ export default function Hero() {
         .to(wordmarkRef.current, { scale: 0.72, yPercent: -8, ease: "none" }, 0)
         .to(imageRef.current, { scale: 1.18, ease: "none" }, 0)
         .to(sectionRef.current, { opacity: 1 }, 0)
-        .to(subRef.current, { opacity: 0, y: -20, ease: "none" }, 0);
+        .to(subRef.current, { opacity: 0, y: -20, ease: "none" }, 0)
+        .to(badgeRef.current, { yPercent: -14, scale: 1.1, ease: "none" }, 0);
+
+      gsap.to(markRef.current, {
+        rotate: "+=8",
+        duration: 6,
+        ease: "sine.inOut",
+        repeat: -1,
+        yoyo: true,
+      });
     }, sectionRef);
 
     return () => ctx.revert();
@@ -66,6 +89,34 @@ export default function Hero() {
     >
       <div ref={imageRef} className="tex-placeholder-dark absolute inset-0" aria-hidden="true">
         <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/20 to-transparent" />
+      </div>
+
+      <div
+        ref={badgeRef}
+        className="pointer-events-none absolute right-[6%] top-[12%] sm:right-[8%] sm:top-[16%]"
+        aria-hidden="true"
+      >
+        <div
+          className="relative flex items-center justify-center rounded-full bg-paper shadow-[0_20px_60px_rgba(0,0,0,0.35)]"
+          style={{
+            width: "clamp(120px, 26vw, 240px)",
+            height: "clamp(120px, 26vw, 240px)",
+          }}
+        >
+          <div
+            ref={markRef}
+            className="relative"
+            style={{ width: "58%", aspectRatio: "1024 / 897" }}
+          >
+            <Image
+              src="/brand/shift-culture-logo-transparent.png"
+              alt=""
+              fill
+              className="object-contain"
+              priority
+            />
+          </div>
+        </div>
       </div>
 
       <div className="relative z-10 flex w-full flex-col gap-8 px-4 pb-14 sm:px-6 sm:pb-20">
