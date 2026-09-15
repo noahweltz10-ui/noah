@@ -1,6 +1,65 @@
 import "server-only";
 import type { Cart, Product } from "./types";
 import { FALLBACK_PRODUCTS, SHOPIFY_IS_CONFIGURED } from "./shopify-fallback";
+import { createPublicClient, isSupabaseConfigured } from "./supabase/public";
+
+type ProductOverride = {
+  handle: string;
+  price: string | null;
+  compare_at_price: string | null;
+  available_for_sale: boolean | null;
+  size_availability: Record<string, boolean> | null;
+};
+
+/**
+ * Live price/stock edits made through the owner dashboard, layered on top
+ * of the code-level fallback catalog. Only relevant while Shopify isn't
+ * configured — once real Storefront data is live, that's the source of
+ * truth instead.
+ */
+async function getProductOverrides(): Promise<Map<string, ProductOverride>> {
+  const map = new Map<string, ProductOverride>();
+  if (!isSupabaseConfigured) return map;
+
+  const supabase = createPublicClient();
+  const { data, error } = await supabase.from("product_overrides").select("*");
+  if (error || !data) return map;
+
+  for (const row of data as ProductOverride[]) map.set(row.handle, row);
+  return map;
+}
+
+function applyOverride(product: Product, override?: ProductOverride): Product {
+  if (!override) return product;
+
+  const price = override.price ?? product.priceRange.minVariantPrice.amount;
+  const compareAt =
+    override.compare_at_price !== null && override.compare_at_price !== undefined
+      ? override.compare_at_price
+      : product.compareAtPriceRange?.minVariantPrice.amount;
+
+  const variants = product.variants.map((v) => {
+    const size = v.selectedOptions.find((o) => o.name === "Size")?.value;
+    const sizeOverride = size ? override.size_availability?.[size] : undefined;
+    return {
+      ...v,
+      price: { ...v.price, amount: price },
+      compareAtPrice: compareAt ? { ...v.price, amount: compareAt } : null,
+      availableForSale: sizeOverride ?? v.availableForSale,
+    };
+  });
+
+  return {
+    ...product,
+    priceRange: { minVariantPrice: { ...product.priceRange.minVariantPrice, amount: price } },
+    compareAtPriceRange: compareAt
+      ? { minVariantPrice: { ...product.priceRange.minVariantPrice, amount: compareAt } }
+      : null,
+    availableForSale:
+      override.available_for_sale ?? variants.some((v) => v.availableForSale),
+    variants,
+  };
+}
 
 const DOMAIN = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN;
 const TOKEN = process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_TOKEN;
@@ -81,7 +140,9 @@ export async function getProducts(): Promise<{
   `);
 
   if (!data) {
-    return { products: FALLBACK_PRODUCTS, live: false };
+    const overrides = await getProductOverrides();
+    const products = FALLBACK_PRODUCTS.map((p) => applyOverride(p, overrides.get(p.handle)));
+    return { products, live: false };
   }
 
   const products = data.products.nodes.map((p) => ({
@@ -91,6 +152,44 @@ export async function getProducts(): Promise<{
   }));
 
   return { products, live: true };
+}
+
+type ProductResponse = {
+  product:
+    | (Omit<Product, "images" | "variants"> & {
+        images: { nodes: Product["images"] };
+        variants: { nodes: Product["variants"] };
+      })
+    | null;
+};
+
+export async function getProduct(
+  handle: string
+): Promise<{ product: Product | null; live: boolean }> {
+  const data = await shopifyFetch<ProductResponse>(
+    `query ProductByHandle($handle: String!) {
+      product(handle: $handle) { ${PRODUCT_FIELDS} }
+    }`,
+    { handle }
+  );
+
+  if (!data) {
+    const fallback = FALLBACK_PRODUCTS.find((p) => p.handle === handle) ?? null;
+    if (!fallback) return { product: null, live: false };
+    const overrides = await getProductOverrides();
+    return { product: applyOverride(fallback, overrides.get(handle)), live: false };
+  }
+
+  if (!data.product) return { product: null, live: true };
+
+  return {
+    product: {
+      ...data.product,
+      images: data.product.images.nodes,
+      variants: data.product.variants.nodes,
+    },
+    live: true,
+  };
 }
 
 export const isShopifyConfigured = SHOPIFY_IS_CONFIGURED;

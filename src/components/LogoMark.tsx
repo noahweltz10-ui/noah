@@ -1,11 +1,12 @@
 import Image from "next/image";
 
-const ASPECT = 897 / 1024;
+const ASPECT = 574 / 648;
 
 /**
- * The shift culture star mark. Pure black source asset — never recolored or
- * reshaped, only ever resized and (via LogoBadge) given a light backdrop so
- * it stays visible on dark sections.
+ * The shift culture star mark, pre-composited with a white outline (a
+ * dilated-alpha halo baked into the PNG, not a filled circle) so it reads
+ * on both dark and light sections. The source shape and color are never
+ * altered — only resized.
  */
 export function LogoMark({
   width = 28,
@@ -18,32 +19,13 @@ export function LogoMark({
 }) {
   return (
     <Image
-      src="/brand/shift-culture-logo-transparent.png"
+      src="/brand/shift-culture-logo-outlined.png"
       alt="shift culture"
-      width={1024}
-      height={897}
+      width={648}
+      height={574}
       style={{ width, height: width * ASPECT }}
       className={className}
       priority={priority}
     />
-  );
-}
-
-export function LogoBadge({
-  width = 20,
-  padding = 9,
-  className = "",
-}: {
-  width?: number;
-  padding?: number;
-  className?: string;
-}) {
-  return (
-    <span
-      className={`inline-flex shrink-0 items-center justify-center rounded-full bg-paper ${className}`}
-      style={{ padding }}
-    >
-      <LogoMark width={width} />
-    </span>
   );
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -44,9 +45,17 @@ export default function BrandStatement() {
           <div className="reveal-mask on-dark relative aspect-[4/5] overflow-hidden" data-reveal>
             <div
               ref={creamRef}
-              className="reveal-mask-inner tex-placeholder-dark absolute inset-[-6%] flex items-end p-6"
+              className="reveal-mask-inner absolute inset-[-6%] flex items-end p-6"
             >
-              <span className="text-xs uppercase tracking-[0.2em] text-paper/50">
+              <Image
+                src="/products/shift-cream-pullover-front.webp"
+                alt=""
+                fill
+                sizes="(min-width: 640px) 50vw, 100vw"
+                className="object-cover"
+              />
+              <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-ink/80 to-transparent" />
+              <span className="relative z-10 text-xs uppercase tracking-[0.2em] text-paper">
                 cream
               </span>
             </div>
@@ -54,9 +63,17 @@ export default function BrandStatement() {
           <div className="reveal-mask on-dark relative aspect-[4/5] overflow-hidden" data-reveal data-reveal-delay="120">
             <div
               ref={midnightRef}
-              className="reveal-mask-inner tex-placeholder-dark absolute inset-[-6%] flex items-end p-6"
+              className="reveal-mask-inner absolute inset-[-6%] flex items-end p-6"
             >
-              <span className="text-xs uppercase tracking-[0.2em] text-paper/50">
+              <Image
+                src="/products/shift-midnight-pullover-front.webp"
+                alt=""
+                fill
+                sizes="(min-width: 640px) 50vw, 100vw"
+                className="object-cover"
+              />
+              <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-ink/80 to-transparent" />
+              <span className="relative z-10 text-xs uppercase tracking-[0.2em] text-paper">
                 midnight
               </span>
             </div>

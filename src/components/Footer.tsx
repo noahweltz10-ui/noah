@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { LogoMark } from "./LogoMark";
+import ViewTransitionLink from "./ViewTransitionLink";
 
 export default function Footer() {
   const year = new Date().getFullYear();
@@ -18,17 +19,17 @@ export default function Footer() {
         </div>
 
         <nav className="flex flex-wrap gap-x-8 gap-y-3 text-xs uppercase tracking-[0.14em]">
-          <a href="#top" data-cursor="link">home</a>
-          <a href="#drop" data-cursor="link">shop</a>
-          <a href="#brand" data-cursor="link">brand</a>
-          <a href="#contact" data-cursor="link">contact</a>
+          <Link href="/#top" data-cursor="link">home</Link>
+          <Link href="/#drop" data-cursor="link">shop</Link>
+          <Link href="/#brand" data-cursor="link">brand</Link>
+          <Link href="/#contact" data-cursor="link">contact</Link>
         </nav>
 
         <div className="flex flex-col gap-2 text-xs text-ink/50">
           <span>© {year} shift culture</span>
-          <Link href="/legal" data-cursor="link" className="underline decoration-ink/20 underline-offset-4 hover:decoration-ink">
+          <ViewTransitionLink href="/legal" data-cursor="link" className="underline decoration-ink/20 underline-offset-4 hover:decoration-ink">
             terms and policies
-          </Link>
+          </ViewTransitionLink>
         </div>
       </div>
     </footer>

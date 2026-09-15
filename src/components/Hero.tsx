@@ -5,6 +5,7 @@ import Image from "next/image";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import MagneticButton from "./MagneticButton";
+import HeroShaderBackground from "./HeroShaderBackground";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -87,8 +88,9 @@ export default function Hero() {
       id="top"
       className="relative flex h-[100svh] min-h-[560px] w-full items-end overflow-hidden bg-ink text-paper"
     >
-      <div ref={imageRef} className="tex-placeholder-dark absolute inset-0" aria-hidden="true">
-        <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/20 to-transparent" />
+      <div ref={imageRef} className="absolute inset-0" aria-hidden="true">
+        <HeroShaderBackground />
+        <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/10 to-transparent" />
       </div>
 
       <div
@@ -97,25 +99,20 @@ export default function Hero() {
         aria-hidden="true"
       >
         <div
-          className="relative flex items-center justify-center rounded-full bg-paper shadow-[0_20px_60px_rgba(0,0,0,0.35)]"
+          ref={markRef}
+          className="relative drop-shadow-[0_16px_40px_rgba(0,0,0,0.45)]"
           style={{
-            width: "clamp(120px, 26vw, 240px)",
-            height: "clamp(120px, 26vw, 240px)",
+            width: "clamp(150px, 32vw, 300px)",
+            aspectRatio: "648 / 574",
           }}
         >
-          <div
-            ref={markRef}
-            className="relative"
-            style={{ width: "58%", aspectRatio: "1024 / 897" }}
-          >
-            <Image
-              src="/brand/shift-culture-logo-transparent.png"
-              alt=""
-              fill
-              className="object-contain"
-              priority
-            />
-          </div>
+          <Image
+            src="/brand/shift-culture-logo-outlined.png"
+            alt=""
+            fill
+            className="object-contain"
+            priority
+          />
         </div>
       </div>
 

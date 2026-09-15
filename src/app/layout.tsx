@@ -4,6 +4,9 @@ import "./globals.css";
 import SmoothScroll from "@/components/SmoothScroll";
 import CustomCursor from "@/components/CustomCursor";
 import GlobalReveal from "@/components/GlobalReveal";
+import GrainOverlay from "@/components/GrainOverlay";
+import ScrollProgress from "@/components/ScrollProgress";
+import EasterEgg from "@/components/EasterEgg";
 import { CartProvider } from "@/components/CartProvider";
 import CartDrawer from "@/components/CartDrawer";
 import { isShopifyConfigured } from "@/lib/shopify";
@@ -56,6 +59,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <SmoothScroll />
         <CustomCursor />
         <GlobalReveal />
+        <GrainOverlay />
+        <ScrollProgress />
+        <EasterEgg />
         <CartProvider isConfigured={isShopifyConfigured}>
           <a
             href="#main"
