@@ -1,20 +1,25 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useCart } from "./CartProvider";
-import { LogoBadge } from "./LogoMark";
+import { LogoMark } from "./LogoMark";
 
-const LINKS = [
-  { href: "#drop", label: "shop" },
-  { href: "#brand", label: "brand" },
+const LINKS: { href: string; label: string; preview?: boolean }[] = [
+  { href: "#drop", label: "shop", preview: true },
+  { href: "#brand", label: "brand", preview: true },
   { href: "#contact", label: "contact" },
 ];
 
 export default function Nav() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [preview, setPreview] = useState<{ label: string; x: number; y: number } | null>(
+    null
+  );
   const { cart, openCart } = useCart();
+  const cartBadgeRef = useRef<HTMLSpanElement | null>(null);
+  const prevQty = useRef(cart?.totalQuantity ?? 0);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -22,6 +27,18 @@ export default function Nav() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  useEffect(() => {
+    const qty = cart?.totalQuantity ?? 0;
+    if (qty !== prevQty.current && cartBadgeRef.current) {
+      const el = cartBadgeRef.current;
+      el.classList.remove("cart-badge-pulse");
+      // Force reflow so the animation can restart on rapid successive adds.
+      void el.offsetWidth;
+      el.classList.add("cart-badge-pulse");
+    }
+    prevQty.current = qty;
+  }, [cart?.totalQuantity]);
 
   return (
     <header
@@ -45,7 +62,7 @@ export default function Nav() {
           data-cursor="link"
           className="flex items-center gap-2.5"
         >
-          <LogoBadge width={16} padding={7} />
+          <LogoMark width={22} />
           <span
             className={[
               "font-display italic tracking-tight transition-all duration-500",
@@ -58,7 +75,17 @@ export default function Nav() {
 
         <nav className="hidden items-center gap-8 text-[0.72rem] uppercase tracking-[0.16em] sm:flex">
           {LINKS.map((l) => (
-            <a key={l.href} href={l.href} data-cursor="link" className="opacity-70 transition-opacity hover:opacity-100">
+            <a
+              key={l.href}
+              href={l.href}
+              data-cursor="link"
+              className="nav-underline relative py-1"
+              onMouseMove={(e) => {
+                if (!l.preview) return;
+                setPreview({ label: l.label, x: e.clientX, y: e.clientY });
+              }}
+              onMouseLeave={() => setPreview(null)}
+            >
               {l.label}
             </a>
           ))}
@@ -74,7 +101,10 @@ export default function Nav() {
           >
             cart
             {Boolean(cart?.totalQuantity) && (
-              <span className="ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-ink px-1 text-[0.6rem] text-paper">
+              <span
+                ref={cartBadgeRef}
+                className="ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-ink px-1 text-[0.6rem] text-paper"
+              >
                 {cart?.totalQuantity}
               </span>
             )}
@@ -111,6 +141,19 @@ export default function Nav() {
               {l.label}
             </a>
           ))}
+        </div>
+      )}
+
+      {preview && (
+        <div
+          className="pointer-events-none fixed z-[60] hidden -translate-x-1/2 -translate-y-[calc(100%+18px)] sm:block"
+          style={{ left: preview.x, top: preview.y }}
+        >
+          <div className="tex-placeholder flex h-24 w-20 items-end overflow-hidden rounded-md border border-ink/10 bg-paper p-2 shadow-xl">
+            <span className="font-display text-xs italic text-ink/40">
+              {preview.label}
+            </span>
+          </div>
         </div>
       )}
     </header>
