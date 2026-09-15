@@ -6,9 +6,9 @@ import { useCart } from "./CartProvider";
 import { LogoMark } from "./LogoMark";
 
 const LINKS: { href: string; label: string; preview?: boolean }[] = [
-  { href: "#drop", label: "shop", preview: true },
-  { href: "#brand", label: "brand", preview: true },
-  { href: "#contact", label: "contact" },
+  { href: "/#drop", label: "shop", preview: true },
+  { href: "/#brand", label: "brand", preview: true },
+  { href: "/#contact", label: "contact" },
 ];
 
 export default function Nav() {
@@ -58,7 +58,7 @@ export default function Nav() {
         style={{ transitionTimingFunction: "var(--ease-out-quart)" }}
       >
         <Link
-          href="#top"
+          href="/#top"
           data-cursor="link"
           className="flex items-center gap-2.5"
         >
@@ -75,7 +75,7 @@ export default function Nav() {
 
         <nav className="hidden items-center gap-8 text-[0.72rem] uppercase tracking-[0.16em] sm:flex">
           {LINKS.map((l) => (
-            <a
+            <Link
               key={l.href}
               href={l.href}
               data-cursor="link"
@@ -87,7 +87,7 @@ export default function Nav() {
               onMouseLeave={() => setPreview(null)}
             >
               {l.label}
-            </a>
+            </Link>
           ))}
         </nav>
 
@@ -132,14 +132,14 @@ export default function Nav() {
       {mobileOpen && (
         <div className="absolute left-4 right-4 top-[72px] z-40 rounded-2xl border border-ink/10 bg-paper p-2 shadow-xl sm:hidden">
           {LINKS.map((l) => (
-            <a
+            <Link
               key={l.href}
               href={l.href}
               onClick={() => setMobileOpen(false)}
               className="block rounded-xl px-4 py-3 text-sm uppercase tracking-[0.14em]"
             >
               {l.label}
-            </a>
+            </Link>
           ))}
         </div>
       )}

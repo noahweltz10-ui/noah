@@ -93,6 +93,42 @@ export async function getProducts(): Promise<{
   return { products, live: true };
 }
 
+type ProductResponse = {
+  product:
+    | (Omit<Product, "images" | "variants"> & {
+        images: { nodes: Product["images"] };
+        variants: { nodes: Product["variants"] };
+      })
+    | null;
+};
+
+export async function getProduct(
+  handle: string
+): Promise<{ product: Product | null; live: boolean }> {
+  const data = await shopifyFetch<ProductResponse>(
+    `query ProductByHandle($handle: String!) {
+      product(handle: $handle) { ${PRODUCT_FIELDS} }
+    }`,
+    { handle }
+  );
+
+  if (!data) {
+    const fallback = FALLBACK_PRODUCTS.find((p) => p.handle === handle) ?? null;
+    return { product: fallback, live: false };
+  }
+
+  if (!data.product) return { product: null, live: true };
+
+  return {
+    product: {
+      ...data.product,
+      images: data.product.images.nodes,
+      variants: data.product.variants.nodes,
+    },
+    live: true,
+  };
+}
+
 export const isShopifyConfigured = SHOPIFY_IS_CONFIGURED;
 
 const CART_FIELDS = `
