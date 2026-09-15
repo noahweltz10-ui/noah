@@ -35,8 +35,8 @@ export default function Nav() {
         className={[
           "flex w-full items-center justify-between transition-all duration-500",
           scrolled
-            ? "mt-3 max-w-3xl rounded-full border border-ink/10 bg-paper/90 px-5 py-2.5 shadow-[0_1px_0_rgba(0,0,0,0.04)] backdrop-blur"
-            : "mt-6 max-w-6xl px-2 py-2",
+            ? "mt-3 max-w-3xl rounded-full border border-ink/10 bg-paper/90 px-5 py-2.5 text-ink shadow-[0_1px_0_rgba(0,0,0,0.04)] backdrop-blur"
+            : "mt-6 max-w-6xl px-2 py-2 text-paper",
         ].join(" ")}
         style={{ transitionTimingFunction: "var(--ease-out-quart)" }}
       >
@@ -88,11 +88,11 @@ export default function Nav() {
             onClick={() => setMobileOpen((v) => !v)}
           >
             <span
-              className="h-px w-5 bg-ink transition-transform duration-300"
+              className="h-px w-5 bg-current transition-transform duration-300"
               style={mobileOpen ? { transform: "translateY(3px) rotate(45deg)" } : undefined}
             />
             <span
-              className="h-px w-5 bg-ink transition-transform duration-300"
+              className="h-px w-5 bg-current transition-transform duration-300"
               style={mobileOpen ? { transform: "translateY(-3px) rotate(-45deg)" } : undefined}
             />
           </button>
