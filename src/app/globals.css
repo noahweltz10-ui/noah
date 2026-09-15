@@ -251,6 +251,15 @@ html {
   scrollbar-width: none;
 }
 
+/* ---------- Dashboard light-mode override ---------- */
+/* Inverts the shared ink/paper tokens only inside .dashboard-root, so every
+   existing bg-ink/text-paper utility flips for free — no separate dashboard
+   color classes needed. */
+:root[data-dashboard-theme="light"] .dashboard-root {
+  --color-ink: #f7f6f3;
+  --color-paper: #0a0a0a;
+}
+
 /* ---------- Placeholder texture (stand-in for real photography) ---------- */
 .tex-placeholder {
   position: relative;

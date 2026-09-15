@@ -45,7 +45,7 @@ export default function ProductCard({ product }: { product: Product }) {
       await fetch("/api/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: notifyEmail }),
+        body: JSON.stringify({ email: notifyEmail, productHandle: product.handle }),
       });
     } finally {
       setNotifyStatus("done");

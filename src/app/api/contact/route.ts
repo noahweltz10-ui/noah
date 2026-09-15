@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createPublicClient, isSupabaseConfigured } from "@/lib/supabase/public";
 
 // No email/CRM service is wired up yet. When ready, set RESEND_API_KEY and
 // CONTACT_NOTIFY_EMAIL and send the message on instead of just logging it.
@@ -14,6 +15,16 @@ export async function POST(req: NextRequest) {
     phone?: string;
     comment?: string;
   };
+
+  if (isSupabaseConfigured) {
+    await createPublicClient().from("support_inbox").insert({
+      kind: "contact",
+      name,
+      email,
+      phone,
+      message: comment,
+    });
+  }
 
   const apiKey = process.env.RESEND_API_KEY;
   const notifyEmail = process.env.CONTACT_NOTIFY_EMAIL;
