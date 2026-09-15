@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import type { FormEvent } from "react";
 import type { Product } from "@/lib/types";
@@ -22,12 +23,14 @@ export default function ProductDetail({ product }: { product: Product }) {
   const [justAdded, setJustAdded] = useState(false);
   const [notifyEmail, setNotifyEmail] = useState("");
   const [notifyStatus, setNotifyStatus] = useState<"idle" | "loading" | "done">("idle");
+  const [activeImage, setActiveImage] = useState(0);
 
   const price = product.priceRange.minVariantPrice;
   const compareAt = product.compareAtPriceRange?.minVariantPrice;
   const onSale = compareAt && Number(compareAt.amount) > Number(price.amount);
   const soldOut = !product.availableForSale;
   const selectedVariant = product.variants.find((v) => v.id === selectedId);
+  const image = product.images[activeImage] ?? product.images[0];
 
   const handleAdd = async () => {
     if (!selectedVariant?.availableForSale) return;
@@ -60,10 +63,24 @@ export default function ProductDetail({ product }: { product: Product }) {
         >
           ← back to shop
         </ViewTransitionLink>
-        <div className="tex-placeholder relative flex aspect-[4/5] w-full items-end overflow-hidden bg-ink/5 p-6">
-          <span className="font-display text-3xl italic leading-tight text-ink/25">
-            {product.title}
-          </span>
+        <div className="relative aspect-[4/5] w-full overflow-hidden bg-ink/5">
+          {image ? (
+            <Image
+              key={image.url}
+              src={image.url}
+              alt={image.altText ?? product.title}
+              fill
+              sizes="(min-width: 1024px) 50vw, 100vw"
+              priority
+              className="object-cover"
+            />
+          ) : (
+            <div className="tex-placeholder flex h-full w-full items-end p-6">
+              <span className="font-display text-3xl italic leading-tight text-ink/25">
+                {product.title}
+              </span>
+            </div>
+          )}
           {soldOut && (
             <span className="absolute left-4 top-4 rounded-full bg-paper px-3 py-1 text-[0.62rem] uppercase tracking-[0.14em]">
               sold out
@@ -75,6 +92,32 @@ export default function ProductDetail({ product }: { product: Product }) {
             </span>
           )}
         </div>
+
+        {product.images.length > 1 && (
+          <div className="mt-3 flex gap-3">
+            {product.images.map((img, i) => (
+              <button
+                key={img.url}
+                type="button"
+                onClick={() => setActiveImage(i)}
+                aria-label={`View image ${i + 1}`}
+                data-cursor="link"
+                className={[
+                  "relative aspect-[4/5] w-16 overflow-hidden bg-ink/5 transition-opacity",
+                  i === activeImage ? "opacity-100 ring-1 ring-ink/40" : "opacity-50 hover:opacity-80",
+                ].join(" ")}
+              >
+                <Image
+                  src={img.url}
+                  alt=""
+                  fill
+                  sizes="64px"
+                  className="object-cover"
+                />
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="max-w-lg">

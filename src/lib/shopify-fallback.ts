@@ -15,13 +15,31 @@ const SIZES = ["S", "M", "L", "XL"] as const;
 type Size = (typeof SIZES)[number];
 type SizeAvailability = Record<Size, boolean>;
 
+function productImages(id: string, frontSize: [number, number]) {
+  return [
+    {
+      url: `/products/${id}-front.webp`,
+      altText: null,
+      width: frontSize[0],
+      height: frontSize[1],
+    },
+    {
+      url: `/products/${id}-back.webp`,
+      altText: null,
+      width: 832,
+      height: 1248,
+    },
+  ];
+}
+
 function fallbackProduct(
   id: string,
   title: string,
   price: string,
   compareAt: string,
   description: string,
-  sizes: SizeAvailability
+  sizes: SizeAvailability,
+  frontSize: [number, number] = [832, 1248]
 ): Product {
   const variants = SIZES.map((size) => ({
     id: `fallback-variant-${id}-${size.toLowerCase()}`,
@@ -38,7 +56,7 @@ function fallbackProduct(
     title,
     description,
     availableForSale: variants.some((v) => v.availableForSale),
-    images: [],
+    images: productImages(id, frontSize),
     priceRange: { minVariantPrice: money(price) },
     compareAtPriceRange: compareAt
       ? { minVariantPrice: money(compareAt) }
@@ -74,7 +92,8 @@ export const FALLBACK_PRODUCTS: Product[] = [
     "44.00",
     "69.99",
     SWEATPANTS_DESCRIPTION,
-    { S: false, M: true, L: false, XL: false }
+    { S: false, M: true, L: false, XL: false },
+    [1024, 1536]
   ),
   fallbackProduct(
     "shift-cream-tshirt",
